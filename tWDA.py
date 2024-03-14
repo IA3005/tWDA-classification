@@ -27,7 +27,7 @@ class tWDA(BaseEstimator, ClassifierMixin, TransformerMixin):
         _,p,_ = S.shape
         if df==np.inf:
             return np.mean(S,axis=0)/self.n
-        return RCG(S,p,self.n,df=df)
+        return RCG(S,self.n,df=df)
 
 
     def fit(self, S, y):

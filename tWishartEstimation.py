@@ -16,27 +16,36 @@ import os, sys
     
 
 
-def wishart_t_est(S,n,df,manifold):
+def RCG(S,n,df):
     """
-    
+    Compute the maximum likelihood estimator (MLE) of the 
+    center of a t-Wishart distribution of df degrees of freedom
+    denoted as t-W(n,Center,df). The MLE is derived iteratively,
+    using the Riemannian Conjugate Gradient algorithm
 
     Parameters
     ----------
-    S : TYPE
-        DESCRIPTION.
-    n : TYPE
-        DESCRIPTION.
-    df : TYPE
-        DESCRIPTION.
-    manifold : TYPE
-        DESCRIPTION.
+    S : ndarray, shape (n_samples, p, p)
+        samples.
+    n : int
+        parameter of t-Wishart distribution
+    df : float
+        degree of freedom used for estimation.
+    manifold : class
+        class of the Riemannian manifold of pxp SPD matrices, endowed with 
+        the FIM of t-Wishart distribution.
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    ndarray, shape (p,p)
+        MLE of the center of t-Wishart.
 
     """
+    _,p,_ = S.shape
+    alpha = n/2*(df+n*p)/(df+n*p+2)
+    beta = n/2*(alpha-n/2)
+    manifold = SPD(p,alpha,beta)
+    
     @pymanopt.function.numpy(manifold)
     def cost(R):
         return t_wish_cost(R,S,n,df)
@@ -44,6 +53,7 @@ def wishart_t_est(S,n,df,manifold):
     def euclidean_gradient(R):
         return t_wish_egrad(R,S,n,df)
     #
+    
     problem = Problem(manifold=manifold, cost=cost, euclidean_gradient=euclidean_gradient)
     init = np.eye(S.shape[-1])
     optimizer = ConjugateGradient(verbosity=0)
@@ -51,23 +61,21 @@ def wishart_t_est(S,n,df,manifold):
 
 def t_wish_cost(R,S,n,df):
     """
-    
-
     Parameters
     ----------
-    R : TYPE
-        DESCRIPTION.
-    S : TYPE
-        DESCRIPTION.
-    n : TYPE
-        DESCRIPTION.
-    df : TYPE
-        DESCRIPTION.
+    R : ndarray, shape (p,p)
+        center of distribution.
+    S : ndarray, shape (n_samples,p,p)
+        samples.
+    n : int
+        parameter of the t-Wishart distribution.
+    df : float
+        degrees of freedo of the t-Wishart distribution.
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    float
+        negative loglikelihood of samples S drawn from t-W(n,R,df).
 
     """
     p, _ = R.shape
@@ -75,23 +83,21 @@ def t_wish_cost(R,S,n,df):
 
 def t_wish_egrad(R,S,n,df):
     """
-    
-
     Parameters
     ----------
-    R : TYPE
-        DESCRIPTION.
-    S : TYPE
-        DESCRIPTION.
-    n : TYPE
-        DESCRIPTION.
-    df : TYPE
-        DESCRIPTION.
+    R : ndarray, shape (p,p)
+        center of distribution.
+    S : ndarray, shape (n_samples,p,p)
+        samples.
+    n : int
+        parameter of the t-Wishart distribution.
+    df : float
+        degrees of freedo of the t-Wishart distribution.
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    ndarray, shape (p,p)
+        Euclidean gradient of the negative log-likelihood.
 
     """
     p, _ = R.shape
@@ -119,11 +125,6 @@ def t_u(t,df,dim):
     return (df+dim)/(df+t)
 
 
-def RCG(samples,p,n,df=5):
-    alpha = n/2*(df+n*p)/(df+n*p+2)
-    beta = n/2*(alpha-n/2)
-    manifold = SPD(p,alpha,beta)
-    return wishart_t_est(samples,n,df,manifold)
 
 
 

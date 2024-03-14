@@ -14,6 +14,16 @@ def sym(x):
 
 	
 class SPD(RiemannianSubmanifold):
+    """
+	Class describing the manifold of symmetric positive definite matrices (SPD) endowed with 
+	the Riemannian "Fisher Information metric" (FIM) of the Elliptical Wishart distributions
+ 	For more details, see:
+  	  I. Ayadi, F. Bouchard and F. Pascal, "Elliptical Wishart Distribution: Maximum Likelihood 
+      Estimator from Information Geometry," ICASSP 2023 - 2023 IEEE International Conference on
+	  Acoustics, Speech and Signal Processing (ICASSP), Rhodes Island, Greece, 2023, pp. 1-5, 
+   	  doi: 10.1109/ICASSP49357.2023.10096222.
+    """
+        
     def __init__(self, p, alpha, beta):
         """
         """
@@ -32,6 +42,9 @@ class SPD(RiemannianSubmanifold):
         return np.sqrt(self.dim)
 
     def random_point(self, cond=100):
+        """
+        generates a random pxp SPD matrix given its condition number
+        """
         U = ortho_group.rvs(self._p)
         #
         d = np.zeros(self._p)
@@ -49,6 +62,23 @@ class SPD(RiemannianSubmanifold):
         return np.zeros((self._p,self._p))
 
     def inner_product(self, point, tangent_vector_a, tangent_vector_b):
+        """
+        Parameters
+        ----------
+        point : ndarray, shape (p,p)
+            SPD matrix.
+        tangent_vector_a : ndarray, shape (p,p)
+            symetric matrix, represents a tangent vector.
+        tangent_vector_b : ndarray, shape (p,p)
+            symetric matrix, represents a tangent vector..
+
+        Returns
+        -------
+        float
+            Fisher information metric at "point" of the two tangent vectors
+.
+
+        """
         L = la.cholesky(point)
         iL, _ = dtrtri(L, lower=1)
         coor_a = iL @ tangent_vector_a @ iL.T
