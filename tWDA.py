@@ -129,7 +129,7 @@ class tWDA(BaseEstimator, ClassifierMixin, TransformerMixin):
         prob : ndarray, shape (n_trials, n_classes)
             the softmax probabilities for each class.
         """
-        return softmax(-self._predict_distances(S)**2)
+        return softmax(self._predict_distances(S)**2)
 
 
 
